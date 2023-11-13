@@ -1,7 +1,18 @@
 from astroquery.jplhorizons import Horizons
 
+# TODO: Docstring on function.
+# TODO: Create an option for getting closed ellipse orbit.
+# Create an function for queying a body name and retruning True if jplhorizons
+# recognizes it.
+# Google style docstrings: https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html
+
 
 def query_horizons():
+    # TODO: Add filename as keyword with reasonable default.
+    """ Create a file.
+    Parameters:
+    Returns:
+    """
     body = input("Body: ")
     start = input("Start time: ")
     stop = input("Stop time: ")
@@ -54,4 +65,5 @@ def query_horizons():
     print("CTR file generated.")
 
 
-query_horizons()
+if __name__ == "__main__":
+    query_horizons()
