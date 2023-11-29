@@ -1,18 +1,33 @@
 from astroquery.jplhorizons import Horizons
 
-# TODO: Docstring on function.
-# TODO: Create an option for getting closed ellipse orbit.
-# Create an function for queying a body name and retruning True if jplhorizons
-# recognizes it.
-# Google style docstrings: https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html
+
+def query_body():
+
+    """
+    Takes body parameter.
+    Query Horizons to verify existence body ID.
+    Returns True if body ID exists, else False.
+    """
+
+    body = input("Body: ")
+
+    try:
+        print(Horizons(id=body).ephemerides())
+        return True
+
+    except ValueError:
+        print("Unrecognized Body.")
+        return False
 
 
 def query_horizons():
-    # TODO: Add filename as keyword with reasonable default.
-    """ Create a file.
-    Parameters:
-    Returns:
+
     """
+    Takes body and time parameters.
+    Queries Horizons to generate ephemeris from parameters.
+    Creates file and inserts DS2-format ephemeris.
+    """
+
     body = input("Body: ")
     start = input("Start time: ")
     stop = input("Stop time: ")
@@ -40,7 +55,9 @@ def query_horizons():
     vec = ephemeris.vectors()
     xyz_data = vec["x", "y", "z"].pformat_all(show_unit=False, show_name=False)
 
-    with open(f"{body.replace(' ', '')}.ctr", "w") as file:
+    file_name = input("File name: ")
+
+    with open(f"{file_name}.ctr", "w") as file:
         file.write(f"[HEADER]\n"
                    f"\n"
                    f"Title:  {body}\n"
@@ -65,5 +82,23 @@ def query_horizons():
     print("CTR file generated.")
 
 
+def menu():
+
+    """
+    Takes option parameter.
+    Calls query_body() or query_horizons().
+    """
+
+    option = input("Enter 'query' or 'generate': ").lower()
+
+    if option == 'query':
+        query_body()
+    elif option == 'generate':
+        query_horizons()
+    else:
+        print("Invalid option.")
+        menu()
+
+
 if __name__ == "__main__":
-    query_horizons()
+    menu()
