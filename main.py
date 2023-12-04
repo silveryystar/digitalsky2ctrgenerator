@@ -2,11 +2,13 @@ from astroquery.jplhorizons import Horizons
 
 
 def query_body():
-
+    # TODO: Separate query body into 2 functions,
     """
-    Takes body parameter.
-    Query Horizons to verify existence body ID.
-    Returns True if body ID exists, else False.
+    Get input from user return true if input value is body on jplhorizons.
+
+    Use basic input to request name of body string.
+    Query jpl servers for existence of body name.
+    Return true if the value is a known body name, false otherwise.
     """
 
     body = input("Body: ")
@@ -21,7 +23,7 @@ def query_body():
 
 
 def query_horizons():
-
+    # TODO Separate this out also.
     """
     Takes body and time parameters.
     Queries Horizons to generate ephemeris from parameters.
@@ -79,11 +81,11 @@ def query_horizons():
             file.write(f"{str(line)}"
                        f"\n")
 
+    # TODO: Put this only in the context of running from the command line.
     print("CTR file generated.")
 
 
 def menu():
-
     """
     Takes option parameter.
     Calls query_body() or query_horizons().
