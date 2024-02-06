@@ -1,5 +1,11 @@
 from astroquery.jplhorizons import Horizons
 
+# TODO: Use dateutil.parser motules fuzzy time parser
+# to let user type times more easily.
+# TODO: Catche horozons errors and if body doesn't exist
+# ask user to type again.
+# Follow up with other parmeters.
+
 
 def get_parameters():
     """
@@ -97,8 +103,17 @@ def query_horizons():
     Use get_parameters, get_data, format_interval, and get_file functions to generate CTR file.
     """
     body, start, stop, interval = get_parameters()
-    xyz_data = get_data(body, start, stop, interval)
-    corrected_interval = format_interval(interval)
+    success = False
+    while success is False:
+        try:
+            xyz_data = get_data(body, start, stop, interval)
+            success = True
+        except ValueError as e:
+            print(f"We got an error it was {e}, try again."
+            body, start, stop, interval=get_parameters()
+
+
+    corrected_interval=format_interval(interval)
     get_file(body, start, corrected_interval, xyz_data)
 
 
