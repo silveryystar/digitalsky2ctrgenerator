@@ -1,46 +1,49 @@
 from astroquery.jplhorizons import Horizons
 
 
-def query_body():
-    # TODO: Separate query body into 2 functions,
+def get_parameters():
     """
-    Get input from user return true if input value is body on jplhorizons.
+    Take and return user inputs on body information.
 
-    Use basic input to request name of body string.
-    Query jpl servers for existence of body name.
-    Return true if the value is a known body name, false otherwise.
+    Take body, start, stop, and interval inputs.
+    Return all inputs.
     """
-
-    body = input("Body: ")
-
-    try:
-        print(Horizons(id=body).ephemerides())
-        return True
-
-    except ValueError:
-        print("Unrecognized Body.")
-        return False
-
-
-def query_horizons():
-    # TODO Separate this out also.
-    """
-    Takes body and time parameters.
-    Queries Horizons to generate ephemeris from parameters.
-    Creates file and inserts DS2-format ephemeris.
-    """
-
     body = input("Body: ")
     start = input("Start time: ")
     stop = input("Stop time: ")
     interval = input("Interval: ")
 
+    return body, start, stop, interval
+
+
+def get_data(body, start, stop, interval):
+    """
+    Generate and return ephemeris data from parameters.
+
+    Take body, start, stop, and interval parameters.
+    Query JPL Horizons and generate ephemeris.
+    Get, format, and return vector data from ephemeris.
+    """
     ephemeris = Horizons(id=body,
-                         location="500@10",
+                         location="500@10",  # Sun
                          epochs={"start": start,
                                  "stop": stop,
                                  "step": interval})
 
+    vec = ephemeris.vectors()
+    xyz_data = vec["x", "y", "z"].pformat_all(show_unit=False,
+                                              show_name=False)
+
+    return xyz_data
+
+
+def format_interval(interval):
+    """
+    Correct and return DS2-format parameter.
+
+    Take interval parameter.
+    Format and return corrected interval.
+    """
     float_interval = interval[-1]
     sliced_interval = interval[:-1]
     corrected_interval = 0
@@ -54,53 +57,156 @@ def query_horizons():
     elif float_interval == "d":
         corrected_interval = float(sliced_interval)
 
-    vec = ephemeris.vectors()
-    xyz_data = vec["x", "y", "z"].pformat_all(show_unit=False, show_name=False)
+    return corrected_interval
 
+
+def get_file(body, start, corrected_interval, xyz_data):
+    """
+    Take parameters and generate DS2-format CTR file.
+
+    Take body, start, corrected_interval, and xyz_data parameters.
+    Get file_name input and create file with file_name.
+    Insert DS2-format information and vector data into file.
+    Print confirmation that file has been generated.
+    """
     file_name = input("File name: ")
 
     with open(f"{file_name}.ctr", "w") as file:
-        file.write(f"[HEADER]\n"
-                   f"\n"
+        file.write(f"[HEADER]\n\n"
                    f"Title:  {body}\n"
                    f"Name:   {body}\n"
                    f"Class:  Path0\n"
                    f"Type0:  Position\n"
                    f"Unit:   AU\n"
                    f"Source: JPL Horizons\n"
-                   f"Author: silveryystar\n"
-                   f"\n"
-                   f"[DATA]\n"
-                   f"\n"
+                   f"Author: silveryystar\n\n"
+                   f"[DATA]\n\n"
                    f"Date={start}\n"
-                   f"Interval={corrected_interval}"
-                   f"\n"
-                   f"\n")
+                   f"Interval={corrected_interval}\n\n")
 
         for line in xyz_data:
-            file.write(f"{str(line)}"
-                       f"\n")
+            file.write(f"{str(line)}\n")
 
-    # TODO: Put this only in the context of running from the command line.
-    print("CTR file generated.")
+    print("CTR file generated.")  # Command-line only?
 
 
-def menu():
+def query_horizons():
     """
-    Takes option parameter.
-    Calls query_body() or query_horizons().
+    Use functions to run code.
+
+    Use get_parameters, get_data, format_interval, and get_file functions to generate CTR file.
     """
-
-    option = input("Enter 'query' or 'generate': ").lower()
-
-    if option == 'query':
-        query_body()
-    elif option == 'generate':
-        query_horizons()
-    else:
-        print("Invalid option.")
-        menu()
+    body, start, stop, interval = get_parameters()
+    xyz_data = get_data(body, start, stop, interval)
+    corrected_interval = format_interval(interval)
+    get_file(body, start, corrected_interval, xyz_data)
 
 
 if __name__ == "__main__":
-    menu()
+    query_horizons()
+from astroquery.jplhorizons import Horizons
+
+
+def get_parameters():
+    """
+    Take and return user inputs on body information.
+
+    Take body, start, stop, and interval inputs.
+    Return all inputs.
+    """
+    body = input("Body: ")
+    start = input("Start time: ")
+    stop = input("Stop time: ")
+    interval = input("Interval: ")
+
+    return body, start, stop, interval
+
+
+def get_data(body, start, stop, interval):
+    """
+    Generate and return ephemeris data from parameters.
+
+    Take body, start, stop, and interval parameters.
+    Query JPL Horizons and generate ephemeris.
+    Get, format, and return vector data from ephemeris.
+    """
+    ephemeris = Horizons(id=body,
+                         location="500@10",  # Sun
+                         epochs={"start": start,
+                                 "stop": stop,
+                                 "step": interval})
+
+    vec = ephemeris.vectors()
+    xyz_data = vec["x", "y", "z"].pformat_all(show_unit=False,
+                                              show_name=False)
+
+    return xyz_data
+
+
+def format_interval(interval):
+    """
+    Correct and return DS2-format parameter.
+
+    Take interval parameter.
+    Format and return corrected interval.
+    """
+    float_interval = interval[-1]
+    sliced_interval = interval[:-1]
+    corrected_interval = 0
+
+    if float_interval == "s":
+        corrected_interval = float(sliced_interval)/60/60/24
+    elif float_interval == "m":
+        corrected_interval = float(sliced_interval)/60/24
+    elif float_interval == "h":
+        corrected_interval = float(sliced_interval)/24
+    elif float_interval == "d":
+        corrected_interval = float(sliced_interval)
+
+    return corrected_interval
+
+
+def get_file(body, start, corrected_interval, xyz_data):
+    """
+    Take parameters and generate DS2-format CTR file.
+
+    Take body, start, corrected_interval, and xyz_data parameters.
+    Get file_name input and create file with file_name.
+    Insert DS2-format information and vector data into file.
+    Print confirmation that file has been generated.
+    """
+    file_name = input("File name: ")
+
+    with open(f"{file_name}.ctr", "w") as file:
+        file.write(f"[HEADER]\n\n"
+                   f"Title:  {body}\n"
+                   f"Name:   {body}\n"
+                   f"Class:  Path0\n"
+                   f"Type0:  Position\n"
+                   f"Unit:   AU\n"
+                   f"Source: JPL Horizons\n"
+                   f"Author: silveryystar\n\n"
+                   f"[DATA]\n\n"
+                   f"Date={start}\n"
+                   f"Interval={corrected_interval}\n\n")
+
+        for line in xyz_data:
+            file.write(f"{str(line)}\n")
+
+    print("CTR file generated.")  # Command-line only?
+
+
+def query_horizons():
+    """
+    Use functions to run code.
+
+    Use get_parameters, get_data, format_interval, and get_file functions to generate CTR file.
+    """
+    body, start, stop, interval = get_parameters()
+    xyz_data = get_data(body, start, stop, interval)
+    corrected_interval = format_interval(interval)
+    get_file(body, start, corrected_interval, xyz_data)
+
+
+if __name__ == "__main__":
+    query_horizons()
