@@ -1,10 +1,7 @@
 from astroquery.jplhorizons import Horizons
+from dateutil.parser import parse
 
-# TODO: Use dateutil.parser motules fuzzy time parser
-# to let user type times more easily.
-# TODO: Catche horozons errors and if body doesn't exist
-# ask user to type again.
-# Follow up with other parmeters.
+# TODO: Devise better system of using functions; awkward for user to redo all inputs for one wrong input.
 
 
 def get_parameters():
@@ -20,6 +17,23 @@ def get_parameters():
     interval = input("Interval: ")
 
     return body, start, stop, interval
+
+
+def parse_format_input(i):
+    """
+    Parse, format, and return parameter.
+
+    Take i parameter.
+    Parse, format, and return i.
+    """
+    if i[4] == i[7] == "/" and i[10] == "," and i[13] == i[16] == ":":
+        format_data = i
+
+    else:
+        parse_data = parse(i, fuzzy=True)
+        format_data = str(parse_data).replace("-", "/").replace(" ", ",")
+
+    return format_data
 
 
 def get_data(body, start, stop, interval):
@@ -73,7 +87,6 @@ def get_file(body, start, corrected_interval, xyz_data):
     Take body, start, corrected_interval, and xyz_data parameters.
     Get file_name input and create file with file_name.
     Insert DS2-format information and vector data into file.
-    Print confirmation that file has been generated.
     """
     file_name = input("File name: ")
 
@@ -93,27 +106,41 @@ def get_file(body, start, corrected_interval, xyz_data):
         for line in xyz_data:
             file.write(f"{str(line)}\n")
 
-    print("CTR file generated.")  # Command-line only?
-
 
 def query_horizons():
     """
     Use functions to run code.
 
-    Use get_parameters, get_data, format_interval, and get_file functions to generate CTR file.
+    Use get_parameters, parse_format_input, get_data, format_interval, and get_file functions to generate CTR file.
     """
     body, start, stop, interval = get_parameters()
+
     success = False
     while success is False:
         try:
-            xyz_data = get_data(body, start, stop, interval)
+            start = parse_format_input(start)
+            stop = parse_format_input(stop)
             success = True
+
         except ValueError as e:
-            print(f"We got an error it was {e}, try again."
-            body, start, stop, interval=get_parameters()
+            print(f"Parse Error: {e}")
+            start = input("Start time: ")
+            stop = input("Stop time: ")
 
+    xyz_data = 0
+    success = False
+    try:
+        xyz_data = get_data(body, start, stop, interval)
+        success = True
 
-    corrected_interval=format_interval(interval)
+    except ValueError as e:
+        print(f"Horizons Error: {e}")
+
+    if success is False:
+        query_horizons()
+        quit()
+
+    corrected_interval = format_interval(interval)
     get_file(body, start, corrected_interval, xyz_data)
 
 
